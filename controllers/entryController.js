@@ -2,6 +2,13 @@ const express = require("express");
 const entry = express.Router();
 const entriesArray = require("../models/entry");
 
+const {
+  checkDate,
+  checkTime,
+  checkAuthor,
+  checkContent,
+} = require("../validations/entry");
+
 entry.get("/", async (req, res) => {
   res.json(entriesArray);
 });
@@ -47,14 +54,8 @@ entry.get("/:id", (req, res) => {
 //   res.json(entry);
 // });
 
-
-
-entry.post("/", (req, res) => {
+entry.post("/", checkDate, checkTime, checkAuthor, checkContent, (req, res) => {
   const { Date, Time, Author, Content } = req.body;
-
-  if (!Date || !Time || !Author || !Content) {
-    return res.status(400).json({ error: "Missing required fields" });
-  }
 
   const newEntry = {
     Date,
