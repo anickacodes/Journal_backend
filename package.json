@@ -8,6 +8,8 @@
   "scripts": {
     "start": "nodemon server.js"
   },
+  "author": "Anicka Lewis",
+  "license": "MIT",
   "dependencies": {
     "cors": "^2.8.5"
   }
