@@ -10,7 +10,7 @@ entry.get("/:id", (req, res) => {
   const { id } = req.params;
   if (entriesArray) {
     res.json(entriesArray[id]);
-    console.log("excuse", entries[id]);
+    console.log("excuse", entriesArray[id]);
   } else {
     res.status(404).json("no id matching");
   }
@@ -49,23 +49,23 @@ entry.get("/:id", (req, res) => {
 
 
 
-// entry.post("/", (req, res) => {
-//   const { Date, Time, Author, Content } = req.body;
+entry.post("/", (req, res) => {
+  const { Date, Time, Author, Content } = req.body;
 
-//   if (!Date || !Time || !Author || !Content) {
-//     return res.status(400).json({ error: "Missing required fields" });
-//   }
+  if (!Date || !Time || !Author || !Content) {
+    return res.status(400).json({ error: "Missing required fields" });
+  }
 
-//   const newEntry = {
-//     Date,
-//     Time,
-//     Author,
-//     Content,
-//   };
-//   console.log(`sent`, newEntry);
-//   entriesArray.push(newEntry);
-//   res.status(201).json(entriesArray);
-// });
+  const newEntry = {
+    Date,
+    Time,
+    Author,
+    Content,
+  };
+  console.log(`sent`, newEntry);
+  entriesArray.push(newEntry);
+  res.status(201).json(entriesArray);
+});
 
 // entry.put("/:id", (req, res) => {
 //   const { id } = req.params;
