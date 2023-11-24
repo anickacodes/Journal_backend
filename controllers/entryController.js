@@ -15,9 +15,11 @@ entry.get("/", async (req, res) => {
 
 entry.get("/:id", (req, res) => {
   const { id } = req.params;
-  if (entriesArray) {
-    res.json(entriesArray[id]);
-    console.log("excuse", entriesArray[id]);
+  const foundEntry = entriesArray.find((entry) => entry.id.toString() === id);
+
+  if (foundEntry) {
+    res.json(foundEntry);
+    console.log("excuse", foundEntry);
   } else {
     res.status(404).json("no id matching");
   }
@@ -55,9 +57,10 @@ entry.get("/:id", (req, res) => {
 // });
 
 entry.post("/", checkDate, checkTime, checkAuthor, checkContent, (req, res) => {
-  const { Date, Time, Author, Content } = req.body;
+  const { id, Date, Time, Author, Content } = req.body;
 
   const newEntry = {
+    id,
     Date,
     Time,
     Author,
@@ -68,16 +71,35 @@ entry.post("/", checkDate, checkTime, checkAuthor, checkContent, (req, res) => {
   res.status(201).json(entriesArray);
 });
 
-// entry.put("/:id", (req, res) => {
-//   const { id } = req.params;
-//   const arrayIndex = findIndexById(id);
+entry.put("/:id", (req, res) => {
+  const { id } = req.params;
+  console.log('ID from URL:', id, typeof id);
+  const entryToUpdate = entriesArray.find((entry) => {
+    console.log('Comparing entry.id:', entry.id, typeof entry.id);
+    return entry.id.toString() == id;
+  });
+  
 
-//   if (arrayIndex === -1) {
-//     return res.status(404).json({ error: "Entry not found" });
-//   }
-//   entriesArray[arrayIndex] = updatedEntry;
-//   res.status(200).json(entriesArray);
-// });
+  if (!entryToUpdate) {
+    return res.status(404).json({ error: "Entry not found" });
+  }
+
+  const { Date, Time, Author, Content } = req.body;
+  const updatedEntry = {
+    id: entryToUpdate.id, // Maintain the existing ID
+    Date,
+    Time,
+    Author,
+    Content,
+  };
+
+  const updatedArray = entriesArray.map((entry) =>
+  entry.id === entryToUpdate.id ? updatedEntry : entry
+);
+
+  res.status(200).json(updatedArray);
+});
+
 
 // entry.delete("/:id", (req, res) => {
 //   const { id } = req.params;
