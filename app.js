@@ -15,6 +15,14 @@ app.get("/", (req, res) => {
   res.send("Welcome to our Journal App");
 });
 
+// app.get('/login', (req, res) => {
+//     res.sendFile(__dirname + '/login.html');
+//   });
+  
+//   app.post('/login', passport.authenticate('local', {
+//     successRedirect: '/',
+//     failureRedirect: '/login',
+//   }));
 
 app.get("*", (req, res) => {
   res.status(404).send("404 ERROR Page not found");
