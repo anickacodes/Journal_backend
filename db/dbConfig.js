@@ -23,3 +23,13 @@ db.connect()
 
   
 module.exports = db;
+
+
+
+// just generate to send it back *****
+// jswt saves credentials aka token created 
+// send user info + jswt
+// send jswt along w every req 
+// can go in controller or query
+
+

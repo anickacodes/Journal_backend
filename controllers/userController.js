@@ -31,15 +31,15 @@ usersRouter.post("/register", async (req, res) => {
     //   const saltRounds = 10;
     //   const hashedPassword = await bcrypt.hash(password, saltRounds);
 
-    const user = new User({ username, email, password });
-    console.log("user before await", user);
-    await User.create({ username, email, password });
+    // const user = new User({ username, email, password });
+    // console.log("user before await", user);
+   const user = await User.create( { username, email, password });
     console.log("user after await", User);
 
-    res.status(201).json({ message: "User registered successfully" });
+    res.status(201).json({ message: "User registered successfully", ...user });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: "Error registering user" });
+    res.status(500).json({ message: error});
   }
 });
 
