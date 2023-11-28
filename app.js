@@ -8,17 +8,15 @@ app.use(express.json());
 app.use(morgan("tiny"));
 
 app.get("/", (req, res) => {
-    res.send("Welcome to our Journal App");
-  });
+  res.send("Welcome to our Journal App");
+});
 
 const entryController = require("./controllers/entryController.js");
+const userController = require("./controllers/userController");
+
 app.use("/entries", entryController);
+app.use("/users", userController);
 
-
-
-
-
-  
 //   app.post('/login', passport.authenticate('local', {
 //     successRedirect: '/',
 //     failureRedirect: '/login',

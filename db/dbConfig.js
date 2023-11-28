@@ -21,4 +21,5 @@ db.connect()
   })
   .catch((error) => console.log("database connection error", error));
 
+  
 module.exports = db;
