@@ -13,6 +13,22 @@ usersRouter.get("/", async (req, res) => {
   }
 });
 
+usersRouter.get("/:id", async (req, res) => {
+  const { id } = req.params;
+  try {
+    const user = await User.findById(id, "username email");
+    console.log(user)
+    if (!user)
+      res
+        .status(404)
+        .json({ message: "Sorry, User ID not find. via controller" });
+    res.json(user);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Error fetching user" });
+  }
+});
+
 usersRouter.get("/register", (req, res) => {
   res.status(200).send("Testing registration route");
 });
@@ -20,7 +36,6 @@ usersRouter.get("/register", (req, res) => {
 usersRouter.post("/register", async (req, res) => {
   try {
     const { username, email, password } = req.body;
-
     //   const existingUser = await User.findOne({ $or: [{ username }, { email }] });
     //   if (existingUser) {
     //     return res
@@ -33,13 +48,11 @@ usersRouter.post("/register", async (req, res) => {
 
     // const user = new User({ username, email, password });
     // console.log("user before await", user);
-   const user = await User.create( { username, email, password });
-    console.log("user after await", User);
-
+    const user = await User.create({ username, email, password });
     res.status(201).json({ message: "User registered successfully", ...user });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: error});
+    res.status(500).json({ message: error });
   }
 });
 
