@@ -11,7 +11,7 @@
     "db:seed": "psql -U postgres -f db/seed.sql"
   },
   "engines": {
-    "node": ">=18.18.0 <20.0.0"
+    "node": ">=18.18.0"
   },
   "author": "Anicka Lewis",
   "license": "MIT",
