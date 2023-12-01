@@ -64,13 +64,15 @@ usersRouter.post("/register", async (req, res) => {
 usersRouter.post("/login", async (req, res) => {
     const { username, password } = req.body;
     console.log("Received login request body:", { username, password })
-//   const secretKey = crypto.randomBytes(32).toString("hex");
-//   console.log(secretKey);
+
+ 
 const user = await User.findOne({ username });
 console.log("Found user:", user);
 
+const secretKey = process.env.SECRET_KEY;
+console.log("key", secretKey)
 if (user && (await bcrypt.compare(password, user.password))) {
-  const token = jwt.sign({ userId: user._id }, process.env.SECRET_KEY, {
+  const token = jwt.sign({ userId: user._id }, secretKey, {
     expiresIn: "24h",
   });
   console.log("Generated Token:", token);
