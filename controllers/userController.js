@@ -15,6 +15,105 @@ usersRouter.get("/", async (req, res) => {
   }
 });
 
+usersRouter.get("/register-test", async (req, res) => {
+  try {
+    const testUserData = {
+      username: "testuser",
+      email: "testuser@example.com",
+      password: "testpassword",
+    };
+    const response = await fetch(`http://localhost:1133/users/register`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(testUserData),
+    });
+
+    // Check the response status and handle accordingly
+    if (response.ok) {
+      const data = await response.json();
+      console.log("Registration successful:", data);
+      res.status(200).send("Registration test successful");
+    } else {
+      console.error("Registration failed:", response.statusText);
+      res.status(500).send("Registration test failed");
+    }
+  } catch (error) {
+    console.error("Error during registration test:", error);
+    res.status(500).json({
+      message: "Error during registration test",
+      error: error.message,
+    });
+  }
+});
+
+usersRouter.post("/register", async (req, res) => {
+  try {
+    const { username, email, password } = req.body;
+    const existingUser = await User.findOne({ $or: [{ username }, { email }] });
+    if (existingUser) {
+      return res
+        .status(400)
+        .json({ message: "Username or email already exists" });
+    }
+
+    const saltRounds = 10;
+    const hashedPassword = await bcrypt.hash(password, saltRounds);
+
+    const user = await User.create({
+      username,
+      email,
+      password: hashedPassword,
+    });
+    res.status(201).json({ message: "User registered successfully", ...user });
+  } catch (error) {
+    console.error(error);
+    res
+      .status(500)
+      .json({ message: "Error registering user", error: error.message });
+  }
+});
+
+usersRouter.post("/login", async (req, res) => {
+  try {
+    const { username, password } = req.body;
+
+    console.log("Login attempt with:", username, password);
+
+    const user = await User.findOne({ username });
+
+    console.log("User found in the database:", user);
+
+    if (!user) {
+      return res.status(401).json({ message: "Invalid credentials" });
+    }
+
+    const storedHashedPassword = user.password.trim();
+    const passwordMatch = crypto.timingSafeEqual(
+      Buffer.from(password.trim()),
+      Buffer.from(storedHashedPassword)
+    );
+
+    if (passwordMatch) {
+      const token = jwt.sign(
+        { userId: user._id, username: user.username },
+        process.env.SECRET_KEY,
+        { expiresIn: "4h" }
+      );
+
+      res.status(200).json({ message: "Login successful", token });
+    } else {
+      res.status(401).json({ message: "Invalid credentials" });
+    }
+  } catch (error) {
+    console.error(error);
+    res
+      .status(500)
+      .json({ message: "Error during login", error: error.message });
+  }
+});
+
 usersRouter.get("/:id", async (req, res) => {
   const { id } = req.params;
   try {
@@ -30,56 +129,5 @@ usersRouter.get("/:id", async (req, res) => {
     res.status(500).json({ message: "Error fetching user" });
   }
 });
-
-usersRouter.get("/register", (req, res) => {
-  res.status(200).send("Testing registration route");
-});
-
-usersRouter.post("/register", async (req, res) => {
-  try {
-    const { username, email, password } = req.body;
-    //   const existingUser = await User.findOne({ $or: [{ username }, { email }] });
-    //   if (existingUser) {
-    //     return res
-    //       .status(400)
-    //       .json({ message: "Username or email already exists" });
-    //   }
-
-    const saltRounds = 10;
-    const hashedPassword = await bcrypt.hash(password, saltRounds);
-
-    const user = await User.create({
-      username,
-      email,
-      password: hashedPassword,
-    });
-    await user.save();
-    res.status(201).json({ message: "User registered successfully", ...user });
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: "Error registering user", error });
-  }
-});
-
-usersRouter.post("/login", async (req, res) => {
-    const { username, password } = req.body;
-    console.log("Received login request body:", { username, password })
-
- 
-const user = await User.findOne({ username });
-console.log("Found user:", user);
-
-const secretKey = process.env.SECRET_KEY;
-console.log("key", secretKey)
-if (user && (await bcrypt.compare(password, user.password))) {
-  const token = jwt.sign({ userId: user._id }, secretKey, {
-    expiresIn: "24h",
-  });
-  console.log("Generated Token:", token);
-  res.status(200).json({ message: "Login successful", user, token });
-} else {
-  res.status(401).json({ message: "Invalid username or password" });
-}
-})
 
 module.exports = usersRouter;
