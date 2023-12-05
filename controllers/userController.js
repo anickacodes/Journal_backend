@@ -1,7 +1,7 @@
 const express = require("express");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
-const crypto = require("crypto");
+// const crypto = require("crypto");
 const usersRouter = express.Router();
 const User = require("../models/User");
 
@@ -30,13 +30,13 @@ usersRouter.get("/register-test", async (req, res) => {
       body: JSON.stringify(testUserData),
     });
 
-    // Check the response status and handle accordingly
     if (response.ok) {
       const data = await response.json();
       console.log("Registration successful:", data);
       res.status(200).send("Registration test successful");
     } else {
-      console.error("Registration failed:", response.statusText);
+      const errorData = await response.json();
+      console.error("Registration failed:", errorData);
       res.status(500).send("Registration test failed");
     }
   } catch (error) {
@@ -66,7 +66,23 @@ usersRouter.post("/register", async (req, res) => {
       email,
       password: hashedPassword,
     });
-    res.status(201).json({ message: "User registered successfully", ...user });
+
+    const {
+      username: registeredUsername,
+      email: registeredEmail,
+      _id: userId,
+    } = user.toObject();
+
+    res
+      .status(201)
+      .json({
+        message: "User registered successfully",
+        user: {
+          username: registeredUsername,
+          email: registeredEmail,
+          _id: userId,
+        },
+      });
   } catch (error) {
     console.error(error);
     res
@@ -89,13 +105,16 @@ usersRouter.post("/login", async (req, res) => {
       return res.status(401).json({ message: "Invalid credentials" });
     }
 
-    const storedHashedPassword = user.password.trim();
-    const passwordMatch = crypto.timingSafeEqual(
-      Buffer.from(password.trim()),
-      Buffer.from(storedHashedPassword)
-    );
+    const storedHashedPassword = user ? user.password : undefined;
+
+    console.log("Stored Hashed Password:", storedHashedPassword);
+
+    const passwordMatch = await bcrypt.compare(password, storedHashedPassword);
+
+    console.log("Password Match:", passwordMatch);
 
     if (passwordMatch) {
+      // req.session.user = { userId: user._id, username: user.username };
       const token = jwt.sign(
         { userId: user._id, username: user.username },
         process.env.SECRET_KEY,
@@ -104,7 +123,7 @@ usersRouter.post("/login", async (req, res) => {
 
       res.status(200).json({ message: "Login successful", token });
     } else {
-      res.status(401).json({ message: "Invalid credentials" });
+      res.status(401).json({ message: "Password does not match" });
     }
   } catch (error) {
     console.error(error);
