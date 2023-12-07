@@ -99,7 +99,7 @@ usersRouter.post("/login", async (req, res) => {
 
     const user = await User.findOne({ username });
 
-    console.log("User found in the database:", user);
+    console.log("User found in the database:", user.password);
 
     if (!user) {
       return res.status(401).json({ message: "Invalid credentials" });
@@ -130,6 +130,38 @@ usersRouter.post("/login", async (req, res) => {
     res
       .status(500)
       .json({ message: "Error during login", error: error.message });
+  }
+});
+
+usersRouter.post("/reset-password", async (req, res) => {
+  try {
+    const { password, token } = req.body;
+
+    const user = await User.findOne({
+      resetPasswordToken: token,
+      resetPasswordExpires: { $gt: Date.now() },
+    });
+
+    if (!user) {
+      return res.status(401).json({ message: "Invalid or expired token" });
+    }
+
+    const saltRounds = 10;
+    const hashedPassword = await bcrypt.hash(password, saltRounds);
+
+    user.password = hashedPassword;
+
+    user.resetPasswordToken = undefined;
+    user.resetPasswordExpires = undefined;
+
+    await user.save();
+
+    // TODO send confirmation email? 
+
+    res.status(200).json({ message: "Password reset successful" });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Error resetting password", error: error.message });
   }
 });
 
